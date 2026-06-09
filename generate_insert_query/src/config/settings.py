@@ -11,6 +11,7 @@ INPUT_TXT_FILE = "folder_list.txt"
 
 # 결과물 SQL 파일명
 OUTPUT_SQL_FILE = "insert_folders.sql"
+OUTPUT_FILE_SQL = "insert_files.sql"
 
 # ==========================================
 # 경로 자동 설정 **** 수정 금지 *****

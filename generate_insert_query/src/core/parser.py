@@ -20,25 +20,32 @@ def extract_unique_folders(file_paths):
             if not line:
                 continue
 
-            # 윈도우 경로를 안전한 슬래시로 변환
+            # 윈도우 경로 변환
             line = line.replace('\\', '/')
             parts = [p for p in line.split('/') if p]
 
-            # 파싱된 요소가 최소 2개(드라이브명/폴더명)는 되어야 함
-            if len(parts) < 2:
-                # 데이터가 깨진 경우 로그를 남기고 건너뜁니다.
-                continue
+            # 경로가 드라이브(e:)로 시작하는지 체크
 
-            # 파일명 제거 로직
-            # 마지막 요소에 '.'이 포함되어 있으면 파일로 간주하고 제거
+            # 마지막 요소가 파일이면 제거
             if '.' in parts[-1]:
                 parts.pop()
-                # 팝 이후에 길이가 다시 2 미만이 되면 유효하지 않은 경로임
-                if len(parts) < 2:
-                    continue
 
-            bus_home = parts[1]
-            folder_nm = "/" + "/".join(parts[2:]) if len(parts) > 2 else "/"
+            # 이제 parts에 남은 경로 요소들의 길이를 기준으로 처리
+            if len(parts) < 1:
+                continue
+
+            # 드라이브 문자(':')가 포함되어 있는지 확인
+            has_drive = ':' in parts[0]
+
+            if has_drive:
+                # 드라이브가 있으면 [드라이브, 사업폴더, ...] 형태 -> 인덱스 1 사용
+                if len(parts) < 2: continue
+                bus_home = parts[1]
+                folder_nm = "/" + "/".join(parts[2:]) if len(parts) > 2 else "/"
+            else:
+                # 드라이브가 없으면 [사업폴더, ...] 형태 -> 인덱스 0 사용
+                bus_home = parts[0]
+                folder_nm = "/" + "/".join(parts[1:]) if len(parts) > 1 else "/"
 
             unique_folders.add((bus_home, folder_nm))
 

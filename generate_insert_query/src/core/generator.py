@@ -19,8 +19,10 @@ def generate_sql(unique_folders, output_path, run_mode):
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write("-- fmsFolderInfo 테이블 대량 INSERT 스크립트\n")
         f.write(f"-- 생성 모드: {run_mode}\n")
+
         f.write("BEGIN TRANSACTION;\n\n")
 
+        f.write(f"-- {output_path}\n")
         for bus_home, folder_nm in sorted(unique_folders):
             esc_bus = escape_string(bus_home)
             esc_folder = escape_string(folder_nm)

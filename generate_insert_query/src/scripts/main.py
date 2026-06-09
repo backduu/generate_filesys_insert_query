@@ -1,67 +1,54 @@
 import os
+import sys
+import glob
 
-# ==========================================
-# 설정 정보
-# ==========================================
-INPUT_TXT_FILE = "C:\\Users\\kmuu0\\Desktop\\업무관련내용(부산연계)\\working\\2025년 관할해역 해양기본조사(울산부근) 폴더 및 파일 목록.txt"
+# 프로젝트 최상위 폴더(루트)를 찾아 sys.path에 추가
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir)
+project_root = os.path.dirname(src_dir)
 
+# src 폴더가 아닌 프로젝트 최상위 폴더를 경로에 추가합니다.
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
-# 결과 파일 .sql 형식
-OUTPUT_SQL_FILE = os.path.dirname(INPUT_TXT_FILE) + "\\output.sql"
+from src.config import settings
+from src.core import parser, generator
 
-def escape_string(val):
-    if val is None:
-        return ""
-    return val.replace("'", "''")
+def main():
+    print("🚀 FMS 폴더 자동화 스크립트를 시작합니다.")
+    print(f"🔹 현재 설정된 모드: {settings.RUN_MODE}")
 
+    files_to_read = []
 
-# ==========================================
-# 텍스트 파싱 및 SQL 생성 로직
-# ==========================================
-def generate_folder_inserts():
-    if not os.path.exists(INPUT_TXT_FILE):
-        print(f"[오류] '{INPUT_TXT_FILE}' 파일을 찾을 수 없습니다. 파일명을 확인해주세요.")
+    # 단일화 대상 파일
+    if settings.RUN_MODE == "SINGLE":
+        target_file = os.path.join(settings.INPUT_DIR, settings.INPUT_TXT_FILE)
+        if not os.path.exists(target_file):
+            print(f"[오류] '{target_file}' 파일을 찾을 수 없습니다.")
+            return
+        files_to_read.append(target_file)
+    # 다중화 대상 파일들
+    elif settings.RUN_MODE == "MULTI":
+        files_to_read = glob.glob(os.path.join(settings.INPUT_DIR, "*.txt"))
+        if not files_to_read:
+            print(f"[오류] '{settings.INPUT_DIR}' 경로에 .txt 파일이 없습니다.")
+            return
+    else:
+        print("[오류] RUN_MODE는 'SINGLE' 또는 'MULTI'여야 합니다.")
         return
 
-    # 중복된 폴더 쿼리 생성을 막기 위한 집합(Set)
-    unique_folders = set()
+    print(f"총 {len(files_to_read)}개의 대상 파일을 찾았습니다.\n")
 
-    with open(INPUT_TXT_FILE, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
+    # 파싱 모듈 호출
+    unique_folders = parser.extract_unique_folders(files_to_read)
 
-    for i, line in enumerate(lines):
-        line = line.strip()
-        if not line: continue
-        line = line.replace('\\', '/')
-        parts = [p for p in line.split('/') if p]
-        if len(parts) < 2: continue
-        if '.' in parts[-1]: parts.pop()
+    if not unique_folders:
+        print("추출할 폴더 정보가 없어 종료합니다.")
+        return
 
-        bus_home = parts[1]
-        folder_nm = "/" + "/".join(parts[2:]) if len(parts) > 2 else "/"
-        unique_folders.add((bus_home, folder_nm))
-
-        if i < 5:
-            print(f"원본: {line.strip()} -> 해석결과: {bus_home}, {folder_nm}")
-
-# ==========================================
-# SQL 파일 작성
-# ==========================================
-    with open(OUTPUT_SQL_FILE, 'w', encoding='utf-8') as f:
-        f.write("-- fmsFolderInfo 테이블 대량 INSERT 스크립트\n")
-        f.write("BEGIN TRANSACTION;\n\n")
-
-        # 정렬해서 보기 좋게 INSERT 문 생성
-        for bus_home, folder_nm in sorted(unique_folders):
-            esc_bus = escape_string(bus_home)
-            esc_folder = escape_string(folder_nm)
-
-            query = f"INSERT INTO fmsFolderInfo (BusFolderHome, FolderNm) VALUES ('{esc_bus}', '{esc_folder}');\n"
-            f.write(query)
-
-        f.write("\nCOMMIT;\n")
-
-    print(f"\n[완료] 총 {len(unique_folders)}개의 고유 폴더 INSERT 쿼리가 '{OUTPUT_SQL_FILE}'에 생성되었습니다!")
+    # SQL 생성 모듈 호출
+    output_file_path = os.path.join(settings.OUTPUT_DIR, settings.OUTPUT_SQL_FILE)
+    generator.generate_sql(unique_folders, output_file_path, settings.RUN_MODE)
 
 if __name__ == "__main__":
-    generate_folder_inserts()
+    main()

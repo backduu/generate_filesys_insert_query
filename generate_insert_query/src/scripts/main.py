@@ -3,11 +3,11 @@ import os
 # ==========================================
 # 설정 정보
 # ==========================================
-INPUT_TXT_FILE = "2025년 관할해역 해양기본조사(울산부근) 폴더 및 파일 목록.txt"
+INPUT_TXT_FILE = "C:\\Users\\kmuu0\\Desktop\\업무관련내용(부산연계)\\working\\2025년 관할해역 해양기본조사(울산부근) 폴더 및 파일 목록.txt"
 
 
 # 결과 파일 .sql 형식
-OUTPUT_SQL_FILE = "output.sql"
+OUTPUT_SQL_FILE = os.path.dirname(INPUT_TXT_FILE) + "\\output.sql"
 
 def escape_string(val):
     if val is None:
@@ -29,38 +29,30 @@ def generate_folder_inserts():
     with open(INPUT_TXT_FILE, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
-    for line in lines:
+    for i, line in enumerate(lines):
         line = line.strip()
-        if not line:
-            continue
-
-        # 윈도우 경로(\)를 안전한 슬래시(/)로 통일
+        if not line: continue
         line = line.replace('\\', '/')
-
-        # 슬래시(/)를 기준으로 분리하고 빈 문자열 제거
-        # 예: ['e:', '2025_Ulsan', '01_SBE', '01_RAW']
         parts = [p for p in line.split('/') if p]
+        if len(parts) < 2: continue
+        if '.' in parts[-1]: parts.pop()
 
-        # 최소한 드라이브명과 사업폴더명은 있어야 진행 (예: e:/2025_Ulsan)
-        if len(parts) < 2:
-            continue
-
-        # 마지막 요소가 파일인지 확인 (확장자 '.' 포함 여부로 판단)
-        if '.' in parts[-1]:
-            parts.pop() # 파일명을 제거하여 폴더 경로만 남김
-
-        # 사업폴더명 추출
-        bus_home = parts[1] # '2025_Ulsan'
-
-        # 폴더 경로명 조립
-        if len(parts) > 2:
-            folder_nm = "/" + "/".join(parts[2:])
-        else:
-            folder_nm = "/" # 최상위 루트 폴더인 경우
-
-        # 튜플 형태로 Set에 추가 (자동으로 중복 제거됨)
+        bus_home = parts[1]
+        folder_nm = "/" + "/".join(parts[2:]) if len(parts) > 2 else "/"
         unique_folders.add((bus_home, folder_nm))
 
-        print(f"\n[완료] 총 {len(unique_folders)}개의 고유 폴더 INSERT 쿼리가 '{OUTPUT_SQL_FILE}'에 생성되었습니다!")
+        if i < 5:
+            print(f"원본: {line.strip()} -> 해석결과: {bus_home}, {folder_nm}")
+
+    # 결과를 파일에 기록
+    with open(OUTPUT_SQL_FILE, 'w', encoding='utf-8') as f:
+        for bus_home, folder_nm in unique_folders:
+            # SQL 쿼리 생성 예시 (필요에 맞게 수정하세요)
+            sql = f"INSERT INTO folders (bus_home, folder_nm) VALUES ('{escape_string(bus_home)}', '{escape_string(folder_nm)}');\n"
+            f.write(sql)
+
+    print(f"\n[완료] 총 {len(unique_folders)}개의 폴더가 '{OUTPUT_SQL_FILE}'에 저장되었습니다.")
+
+
 if __name__ == "__main__":
     generate_folder_inserts()

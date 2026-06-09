@@ -216,3 +216,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+generate_insert_query/.idea
+generate_insert_query/generate_insert_query.iml

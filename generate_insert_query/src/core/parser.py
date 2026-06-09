@@ -8,8 +8,12 @@ def extract_unique_folders(file_paths):
 
     for txt_file in file_paths:
         print(f" -> 파싱 중: {os.path.basename(txt_file)}")
-        with open(txt_file, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
+        try:
+            with open(txt_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+        except Exception as e:
+            print(f"    [경고] 파일 읽기 실패: {txt_file}, 에러: {e}")
+            continue
 
         for line in lines:
             line = line.strip()
@@ -20,18 +24,22 @@ def extract_unique_folders(file_paths):
             line = line.replace('\\', '/')
             parts = [p for p in line.split('/') if p]
 
-            # 유효성 검사
+            # 파싱된 요소가 최소 2개(드라이브명/폴더명)는 되어야 함
             if len(parts) < 2:
+                # 데이터가 깨진 경우 로그를 남기고 건너뜁니다.
                 continue
 
-            # 마지막 요소가 파일이면 제거 (확장자 존재 여부로 판단)
+            # 파일명 제거 로직
+            # 마지막 요소에 '.'이 포함되어 있으면 파일로 간주하고 제거
             if '.' in parts[-1]:
                 parts.pop()
+                # 팝 이후에 길이가 다시 2 미만이 되면 유효하지 않은 경로임
+                if len(parts) < 2:
+                    continue
 
             bus_home = parts[1]
             folder_nm = "/" + "/".join(parts[2:]) if len(parts) > 2 else "/"
 
-            # 중복 제거를 위해 Set에 추가
             unique_folders.add((bus_home, folder_nm))
 
     return unique_folders

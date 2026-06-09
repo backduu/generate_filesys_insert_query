@@ -44,15 +44,24 @@ def generate_folder_inserts():
         if i < 5:
             print(f"원본: {line.strip()} -> 해석결과: {bus_home}, {folder_nm}")
 
-    # 결과를 파일에 기록
+# ==========================================
+# SQL 파일 작성
+# ==========================================
     with open(OUTPUT_SQL_FILE, 'w', encoding='utf-8') as f:
-        for bus_home, folder_nm in unique_folders:
-            # SQL 쿼리 생성 예시 (필요에 맞게 수정하세요)
-            sql = f"INSERT INTO folders (bus_home, folder_nm) VALUES ('{escape_string(bus_home)}', '{escape_string(folder_nm)}');\n"
-            f.write(sql)
+        f.write("-- fmsFolderInfo 테이블 대량 INSERT 스크립트\n")
+        f.write("BEGIN TRANSACTION;\n\n")
 
-    print(f"\n[완료] 총 {len(unique_folders)}개의 폴더가 '{OUTPUT_SQL_FILE}'에 저장되었습니다.")
+        # 정렬해서 보기 좋게 INSERT 문 생성
+        for bus_home, folder_nm in sorted(unique_folders):
+            esc_bus = escape_string(bus_home)
+            esc_folder = escape_string(folder_nm)
 
+            query = f"INSERT INTO fmsFolderInfo (BusFolderHome, FolderNm) VALUES ('{esc_bus}', '{esc_folder}');\n"
+            f.write(query)
+
+        f.write("\nCOMMIT;\n")
+
+    print(f"\n[완료] 총 {len(unique_folders)}개의 고유 폴더 INSERT 쿼리가 '{OUTPUT_SQL_FILE}'에 생성되었습니다!")
 
 if __name__ == "__main__":
     generate_folder_inserts()

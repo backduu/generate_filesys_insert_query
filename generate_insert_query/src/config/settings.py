@@ -21,3 +21,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # data/input 및 data/output 절대 경로
 INPUT_DIR = os.path.join(BASE_DIR, "data", "input")
 OUTPUT_DIR = os.path.join(BASE_DIR, "data", "output")
+
+# ==========================================
+# DB 설정
+# ==========================================
+DB_CONFIG = {
+    "host": "toisgis.iptime.org",
+    "database": "ofsdb",
+    "port": "15432",
+    "user": "ocean_web",
+    "password": "ocean#$bada"
+}

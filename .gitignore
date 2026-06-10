@@ -219,3 +219,8 @@ __marimo__/
 generate_insert_query/.idea
 generate_insert_query/generate_insert_query.iml
 generate_insert_query/data
+.idea/generate_filesys_insert_query.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea

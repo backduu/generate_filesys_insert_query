@@ -12,7 +12,7 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 from src.config import settings
-from src.core import parser, generator
+from src.core import parser, generator, database
 
 def main():
     print("FMS 자동화 스크립트를 시작합니다.")
@@ -60,6 +60,10 @@ def main():
         if file_records:
             out_file_sql = os.path.join(settings.OUTPUT_DIR, settings.OUTPUT_FILE_SQL)
             generator.generate_file_sql(file_records, out_file_sql, settings.RUN_MODE)
+
+    # DB 삽입 처리
+    print("\n[STEP 3] 데이터베이스 삽입 시작")
+    database.process_db_insertion()
 
     print("\n모든 작업이 완료되었습니다.")
 

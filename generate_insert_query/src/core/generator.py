@@ -9,7 +9,7 @@ def escape_string(val):
     return val.replace("'", "''")
 
 def generate_sql(unique_folders, output_path, run_mode):
-    """파싱된 폴더 데이터를 바탕으로 SQL 파일을 생성합니다."""
+    """파싱된 폴더 데이터를 바탕으로 SQL 파일을 생성"""
     # 출력 폴더가 존재하지 않으면 자동으로 생성
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
@@ -24,7 +24,7 @@ def generate_sql(unique_folders, output_path, run_mode):
             esc_bus = escape_string(bus_home)
             esc_folder = escape_string(folder_nm)
 
-            query = f"INSERT INTO fmsFolderInfo (BusFolderHome, FolderNm) VALUES ('{esc_bus}', '{esc_folder}');\n"
+            query = f"INSERT INTO ocean_web.\"fmsFolderInfo\" (\"BusFolderHome\", \"FolderNm\") VALUES ('{esc_bus}', '{esc_folder}');\n"
             f.write(query)
 
         f.write("\nCOMMIT;\n")
@@ -32,7 +32,7 @@ def generate_sql(unique_folders, output_path, run_mode):
     print(f"    [성공] {len(unique_folders)}개 경로 -> {os.path.basename(output_path)}")
 
 def generate_file_sql(file_records, output_path, run_mode):
-    """파싱된 파일 데이터를 바탕으로 fmsFileInfo 전용 SQL을 생성합니다."""
+    """파싱된 파일 데이터를 바탕으로 fmsFileInfo 전용 SQL을 생성"""
     print("-" * 50)
     print("파일 정보 SQL 생성을 시작합니다...")
     
@@ -51,7 +51,7 @@ def generate_file_sql(file_records, output_path, run_mode):
             esc_folder = escape_string(folder_nm)
             esc_file = escape_string(file_nm)
             
-            query = (f"INSERT INTO fmsFileInfo (FileNm, FileCapa, FileCrtDT, BusFolderHome, FolderNm) "
+            query = (f"INSERT INTO ocean_web.\"fmsFileInfo\" (\"FileNm\", \"FileCapa\", \"FileCrtDT\", \"BusFolderHome\", \"FolderNm\") "
                      f"VALUES ('{esc_file}', {file_capa}, '{file_crt_dt}', '{esc_bus}', '{esc_folder}');\n")
             f.write(query)
             

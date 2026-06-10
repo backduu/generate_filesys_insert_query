@@ -91,8 +91,14 @@ def extract_file_records(file_paths):
                 continue
 
             # 쉼표(,)가 포함된 용량 문자열을 정수형(Int)으로 변환
+            # KB 단위를 Byte로 변환하여 DB의 INTEGER 범위를 넘을 수 있으므로 주의 필요
+            # 그러나 fmsFileInfo의 FileCapa는 INTEGER로 정의됨 (PostgreSQL INTEGER: -2,147,483,648 to 2,147,483,647)
+            # 만약 파일 크기가 2GB를 넘으면 오류 발생 가능.
             try:
                 file_capa = int(size_str.replace(',', ''))
+                # INTEGER 범위를 넘어가면 최대값으로 제한 (또는 0으로 처리)
+                if file_capa > 2147483647:
+                    file_capa = 2147483647
             except ValueError:
                 file_capa = 0
 

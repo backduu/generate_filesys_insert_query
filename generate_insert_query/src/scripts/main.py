@@ -46,6 +46,7 @@ def main():
             folder_target_files.append(f)
 
     # 폴더 정보 파싱 및 SQL 생성
+    unique_folders = set()
     if folder_target_files:
         print("\n[STEP 1] 폴더 정보 처리 시작")
         unique_folders = parser.extract_unique_folders(folder_target_files)
@@ -54,6 +55,7 @@ def main():
             generator.generate_sql(unique_folders, out_folder_sql, settings.RUN_MODE)
 
     # 파일 정보 파싱 및 SQL 생성
+    file_records = []
     if file_target_files:
         print("\n[STEP 2] 파일 정보 처리 시작")
         file_records = parser.extract_file_records(file_target_files)
@@ -61,9 +63,14 @@ def main():
             out_file_sql = os.path.join(settings.OUTPUT_DIR, settings.OUTPUT_FILE_SQL)
             generator.generate_file_sql(file_records, out_file_sql, settings.RUN_MODE)
 
-    # DB 삽입 처리
-    print("\n[STEP 3] 데이터베이스 삽입 시작")
-    database.process_db_insertion()
+    # DB 삽입 처리 (새로운 방식 v2)
+    if unique_folders or file_records:
+        # unique_folders에서 bus_homes 추출
+        bus_homes = sorted(list(set(bus_home for bus_home, _ in unique_folders)))
+        # set을 리스트(튜플 형태)로 변환
+        folder_data = sorted(list(unique_folders))
+        
+        database.process_db_insertion_v2(bus_homes, folder_data, file_records)
 
     print("\n모든 작업이 완료되었습니다.")
 
